@@ -1,0 +1,133 @@
+{
+  "submissionId": "550e8400-e29b-41d4-a716-446655440000",
+  "submittedAt": "2025-10-18T10:00:00Z",
+  "targetEnvironment": "test",
+  "brand": {
+    "name": "Glow Naturals",
+    "voice": "Empowering, Natural, Scientific",
+    "values": "Sustainability, Transparency, Efficacy"
+  },
+  "productBlueprint": {
+    "functions": [
+      "Moisturizing",
+      "Anti-Aging",
+      "Brightening"
+    ],
+    "formType": "Serum",
+    "packagingPrimer": {
+      "type": "Glass Dropper Bottle",
+      "finish": "Frosted",
+      "materialNotes": "Recyclable glass, bamboo cap"
+    },
+    "netto": {
+      "value": 30,
+      "unit": "ml"
+    },
+    "colorProfile": {
+      "description": "Pearl white with subtle shimmer",
+      "hex": "#F8F8FF"
+    },
+    "gender": "All",
+    "ageRanges": [
+      "25-34",
+      "35-44"
+    ],
+    "location": {
+      "country": "Indonesia",
+      "region": "DKI Jakarta",
+      "city": "Jakarta Selatan"
+    },
+    "launchTimeline": "Q2 2026",
+    "targetRetailPrice": 450000,
+    "pilotBatchSize": 1000,
+    "moqExpectation": 500,
+    "distributionFocus": "D2C Online",
+    "sustainabilityPriority": 85,
+    "regulatoryPriority": [
+      "BPOM",
+      "Halal",
+      "Cruelty-Free"
+    ],
+    "texturePreference": "Lightweight, fast-absorbing serum",
+    "fragranceProfile": "Light citrus with floral notes",
+    "claimEmphasis": [
+      "Clinically Proven",
+      "Natural Ingredients",
+      "Sustainable"
+    ],
+    "aiImageStyle": "Minimalist, clean, botanical",
+    "requiresClinicalStudy": true,
+    "needsHalalCertification": true,
+    "referenceUpload": [
+      {
+        "filename": "reference-product.pdf",
+        "url": "https://example.com/uploads/reference.pdf",
+        "mediaType": "application/pdf"
+      }
+    ]
+  },
+  "collaboration": {
+    "preferredChannels": [
+      "Email",
+      "WhatsApp",
+      "Video Call"
+    ],
+    "requestedDeliverables": [
+      "Formula",
+      "Packaging Design",
+      "Marketing Copy",
+      "Regulatory Documentation"
+    ],
+    "notesForDesignTeam": "Focus on eco-friendly packaging with minimalist aesthetic. Target premium market segment with emphasis on sustainability."
+  },
+  "concept": {
+    "formulaNarrative": "A powerful anti-aging serum combining traditional Indonesian botanicals with cutting-edge peptide technology. Features Centella Asiatica extract for soothing and repair, combined with advanced peptides for collagen synthesis. The formula is designed to be lightweight yet deeply nourishing, perfect for tropical climates.",
+    "benchmark": "The Ordinary Buffet + Copper Peptides",
+    "additionalNotes": "Target premium market segment. Emphasize local ingredients and sustainable sourcing. Position as luxury yet accessible."
+  },
+  "ingredients": [
+    {
+      "name": "Niacinamide",
+      "inciName": "Niacinamide",
+      "percentage": 5,
+      "purpose": "Brightening and pore refinement",
+      "notes": "Clinically proven at 5% concentration"
+    },
+    {
+      "name": "Hyaluronic Acid",
+      "inciName": "Sodium Hyaluronate",
+      "percentage": 2,
+      "purpose": "Deep hydration and plumping",
+      "notes": "Multi-molecular weight for layered hydration"
+    },
+    {
+      "name": "Centella Asiatica Extract",
+      "inciName": "Centella Asiatica Extract",
+      "percentage": 3,
+      "purpose": "Soothing and skin repair",
+      "notes": "Locally sourced from Java"
+    },
+    {
+      "name": "Copper Peptides",
+      "inciName": "Copper Tripeptide-1",
+      "percentage": 1,
+      "purpose": "Collagen synthesis and anti-aging",
+      "notes": "Premium ingredient for efficacy"
+    },
+    {
+      "name": "Vitamin C Derivative",
+      "inciName": "Ascorbyl Glucoside",
+      "percentage": 2,
+      "purpose": "Brightening and antioxidant protection",
+      "notes": "Stable form suitable for tropical climate"
+    }
+  ],
+  "systemMetadata": {
+    "formVersion": "1.0.0",
+    "appVersion": "1.0.0",
+    "language": "id",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "ipAddress": "103.xxx.xxx.xxx",
+    "sessionId": "sess_abc123xyz"
+  }
+}

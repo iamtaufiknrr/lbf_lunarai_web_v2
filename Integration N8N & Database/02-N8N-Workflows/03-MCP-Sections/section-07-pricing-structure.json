@@ -1,0 +1,138 @@
+{
+  "name": "Section 7 - Pricing Structure",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "section-7-pricing-structure",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "lbf-section-7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst ingredients = input.context.ingredients;\nconst packagingType = input.context.product.packagingType;\nconst netto = input.context.product.netto;\n\nreturn {\n  json: {\n    submissionId: input.submissionId,\n    ingredients,\n    packagingType,\n    netto\n  }\n};"
+      },
+      "id": "extract-context",
+      "name": "Extract Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT im.name, im.inci_name, si.price_per_kg, s.name as supplier_name FROM ingredients_master im JOIN supplier_ingredients si ON im.id = si.ingredient_id JOIN suppliers s ON si.supplier_id = s.id WHERE im.name = ANY($1::text[]) AND si.in_stock = true ORDER BY si.price_per_kg ASC",
+        "options": {
+          "queryParameters": "={{JSON.stringify([$json.ingredients.map(i => i.name)])}}"
+        }
+      },
+      "id": "mcp-query-prices",
+      "name": "MCP - Query Ingredient Prices",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "LunarAI Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT price_per_unit FROM packaging_costs WHERE type = $1 AND size_ml = $2 LIMIT 1",
+        "options": {
+          "queryParameters": "={{JSON.stringify([$json.packagingType, $json.netto.value])}}"
+        }
+      },
+      "id": "mcp-query-packaging",
+      "name": "MCP - Query Packaging Cost",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get prices from MCP query\nconst priceData = $input.first().json;\nconst prices = {};\n\nfor (const row of priceData) {\n  if (!prices[row.name]) {\n    prices[row.name] = {\n      pricePerKg: row.price_per_kg,\n      supplier: row.supplier_name\n    };\n  }\n}\n\n// Get ingredients and packaging\nconst ingredients = $json.ingredients;\nconst packagingCost = $json.packagingCost || 8000;\n\n// Calculate base cost (assuming 1kg batch)\nlet baseCost = 0;\nconst ingredientBreakdown = [];\n\nfor (const ing of ingredients) {\n  const price = prices[ing.name];\n  if (!price) {\n    throw new Error(`Price not found for ingredient: ${ing.name}`);\n  }\n  \n  const quantityKg = ing.percentage / 100;\n  const cost = quantityKg * price.pricePerKg;\n  \n  baseCost += cost;\n  ingredientBreakdown.push({\n    name: ing.name,\n    cost: Math.round(cost),\n    percentage: Math.round((cost / baseCost) * 100)\n  });\n}\n\n// Add packaging cost\nbaseCost += packagingCost;\n\n// Apply waste factor (15%)\nconst wasteFactor = 0.15;\nconst costWithWaste = baseCost * (1 + wasteFactor);\n\n// Calculate cost ranges\nconst costMin = Math.round(baseCost * 0.8);  // -20%\nconst costMax = Math.round(baseCost * 1.3);  // +30%\n\n// Calculate retail price (40% margin)\nconst margin = 0.40;\nconst retailPrice = Math.round(costWithWaste / (1 - margin));\nconst retailMin = Math.round(retailPrice * 0.8);\nconst retailMax = Math.round(retailPrice * 1.3);\n\n// Calculate break-even\nconst fixedCosts = 5000000; // Setup, labor, overhead\nconst variableCostPerUnit = costWithWaste;\nconst contributionMargin = retailPrice - variableCostPerUnit;\nconst breakEvenUnits = Math.ceil(fixedCosts / contributionMargin);\n\nreturn {\n  json: {\n    submissionId: $json.submissionId,\n    manufacturingCost: {\n      base: Math.round(baseCost),\n      withWaste: Math.round(costWithWaste),\n      range: {\n        min: costMin,\n        max: costMax\n      }\n    },\n    retailPrice: {\n      recommended: retailPrice,\n      range: {\n        min: retailMin,\n        max: retailMax\n      }\n    },\n    margin: margin * 100,\n    breakEven: {\n      units: breakEvenUnits,\n      revenue: breakEvenUnits * retailPrice,\n      contributionMargin: Math.round(contributionMargin)\n    },\n    ingredientBreakdown,\n    packagingCost\n  }\n};"
+      },
+      "id": "calculate-pricing",
+      "name": "Calculate Pricing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formulation_costs (submission_id, manufacturing_cost_base, manufacturing_cost_with_waste, retail_price_recommended, margin_percentage, break_even_units) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+        "options": {
+          "queryParameters": "={{JSON.stringify([$json.submissionId, $json.manufacturingCost.base, $json.manufacturingCost.withWaste, $json.retailPrice.recommended, $json.margin, $json.breakEven.units])}}"
+        }
+      },
+      "id": "store-formulation-cost",
+      "name": "Store Formulation Cost",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    sectionType: 'pricing',\n    submissionId: $json.submissionId,\n    content: {\n      manufacturingCost: $json.manufacturingCost,\n      retailPrice: $json.retailPrice,\n      margin: $json.margin,\n      breakEven: $json.breakEven,\n      ingredientBreakdown: $json.ingredientBreakdown,\n      packagingCost: $json.packagingCost\n    },\n    metadata: {\n      calculatedAt: new Date().toISOString(),\n      wasteFactor: 15,\n      marginPercentage: $json.margin\n    }\n  }\n};"
+      },
+      "id": "format-output",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify($json)}}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Extract Context", "type": "main", "index": 0}]]
+    },
+    "Extract Context": {
+      "main": [[{"node": "MCP - Query Ingredient Prices", "type": "main", "index": 0}]]
+    },
+    "MCP - Query Ingredient Prices": {
+      "main": [[{"node": "MCP - Query Packaging Cost", "type": "main", "index": 0}]]
+    },
+    "MCP - Query Packaging Cost": {
+      "main": [[{"node": "Calculate Pricing", "type": "main", "index": 0}]]
+    },
+    "Calculate Pricing": {
+      "main": [[{"node": "Store Formulation Cost", "type": "main", "index": 0}]]
+    },
+    "Store Formulation Cost": {
+      "main": [[{"node": "Format Output", "type": "main", "index": 0}]]
+    },
+    "Format Output": {
+      "main": [[{"node": "Webhook Response", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["mcp", "section-7", "pricing"],
+  "triggerCount": 1,
+  "updatedAt": "2025-10-18T16:00:00.000Z",
+  "versionId": "1.0.0"
+}
