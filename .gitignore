@@ -1,14 +1,18 @@
 # Dependencies
 /node_modules
+/apps/bolt-vercel/node_modules
 /.pnp
 .pnp.js
 
 # Testing
 /coverage
+/apps/bolt-vercel/coverage
 
 # Next.js
 /.next/
+/apps/bolt-vercel/.next/
 /out/
+/apps/bolt-vercel/out/
 
 # Production
 /build
@@ -29,13 +33,16 @@ pnpm-debug.log*
 
 # Vercel
 .vercel
+/apps/bolt-vercel/.vercel
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+/apps/bolt-vercel/next-env.d.ts
 
 # Drizzle
 drizzle/
+/apps/bolt-vercel/drizzle/
 
 # IDE
 .vscode/

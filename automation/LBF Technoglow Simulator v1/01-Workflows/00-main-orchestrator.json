@@ -1,0 +1,346 @@
+{
+  "name": "LBF Technoglow - Main Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lbf-simulator",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-receiver",
+      "name": "Webhook Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "lbf-simulator-main"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate webhook signature\nconst secret = $env.N8N_WEBHOOK_SECRET;\nconst receivedSecret = $input.item.json.headers['x-webhook-secret'];\n\nif (!secret || receivedSecret !== secret) {\n  throw new Error('Invalid webhook signature');\n}\n\n// Extract payload\nconst body = $input.item.json.body;\n\n// Validate required fields\nif (!body.submissionId || !body.targetEnvironment) {\n  throw new Error('Missing required fields: submissionId or targetEnvironment');\n}\n\nreturn {\n  submissionId: body.submissionId,\n  targetEnvironment: body.targetEnvironment,\n  payload: body,\n  timestamp: new Date().toISOString(),\n  webhookUrl: $input.item.json.headers.host\n};"
+      },
+      "id": "validate-extract",
+      "name": "Validate & Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE submissions \nSET status = 'running', \n    updated_at = NOW() \nWHERE id = '{{ $json.submissionId }}'::uuid\nRETURNING *;",
+        "options": {}
+      },
+      "id": "update-status",
+      "name": "Update Status to Running",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [680, 300],
+      "credentials": {
+        "postgres": {
+          "id": "neon-postgres",
+          "name": "Neon Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO workflow_runs (\n  submission_id,\n  webhook_url,\n  status,\n  started_at\n) VALUES (\n  '{{ $json.submissionId }}'::uuid,\n  '{{ $json.webhookUrl }}',\n  'running',\n  NOW()\n)\nRETURNING *;",
+        "options": {}
+      },
+      "id": "create-workflow-run",
+      "name": "Create Workflow Run",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Orchestrator - Route tasks to specialized agents\nconst payload = $input.item.json.payload;\nconst submissionId = $input.item.json.submissionId;\n\n// Define agent tasks with priorities\nconst tasks = [\n  {\n    agent: 'formulation',\n    priority: 1,\n    parallel: true,\n    data: {\n      productBlueprint: payload.productBlueprint,\n      ingredients: payload.ingredients,\n      concept: payload.concept\n    }\n  },\n  {\n    agent: 'market_research',\n    priority: 1,\n    parallel: true,\n    data: {\n      brand: payload.brand,\n      location: payload.productBlueprint.location,\n      targetMarket: {\n        gender: payload.productBlueprint.gender,\n        ageRanges: payload.productBlueprint.ageRanges,\n        distributionFocus: payload.productBlueprint.distributionFocus\n      }\n    }\n  },\n  {\n    agent: 'copywriting',\n    priority: 1,\n    parallel: true,\n    data: {\n      brand: payload.brand,\n      concept: payload.concept,\n      productBlueprint: payload.productBlueprint\n    }\n  },\n  {\n    agent: 'compliance',\n    priority: 2,\n    parallel: false,\n    data: {\n      ingredients: payload.ingredients,\n      productBlueprint: payload.productBlueprint,\n      location: payload.productBlueprint.location\n    }\n  },\n  {\n    agent: 'pricing',\n    priority: 2,\n    parallel: false,\n    data: {\n      ingredients: payload.ingredients,\n      packaging: payload.productBlueprint.packagingPrimer,\n      netto: payload.productBlueprint.netto,\n      targetRetailPrice: payload.productBlueprint.targetRetailPrice,\n      pilotBatchSize: payload.productBlueprint.pilotBatchSize\n    }\n  }\n];\n\n// Return array of tasks for parallel execution\nreturn tasks.map(task => ({\n  submissionId,\n  agentType: task.agent,\n  priority: task.priority,\n  parallel: task.parallel,\n  inputData: task.data,\n  fullPayload: payload,\n  timestamp: new Date().toISOString()\n}));"
+      },
+      "id": "orchestrator",
+      "name": "Orchestrator Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"submissionId\": $json.submissionId,\n  \"message\": \"Submission received and processing started\",\n  \"status\": \"running\",\n  \"timestamp\": $json.timestamp,\n  \"estimatedCompletionTime\": \"3-4 minutes\"\n} }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.parallel }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-parallel",
+      "name": "Check if Parallel",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1340, 500]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "formulation-webhook",
+              "name": "webhookUrl",
+              "value": "={{ $env.N8N_FORMULATION_WEBHOOK }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "route-formulation",
+      "name": "Route to Formulation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "market-webhook",
+              "name": "webhookUrl",
+              "value": "={{ $env.N8N_MARKET_RESEARCH_WEBHOOK }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "route-market",
+      "name": "Route to Market Research",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1560, 520]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "copywriting-webhook",
+              "name": "webhookUrl",
+              "value": "={{ $env.N8N_COPYWRITING_WEBHOOK }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "route-copywriting",
+      "name": "Route to Copywriting",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1560, 640]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.webhookUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "submissionId",
+              "value": "={{ $json.submissionId }}"
+            },
+            {
+              "name": "agentType",
+              "value": "={{ $json.agentType }}"
+            },
+            {
+              "name": "inputData",
+              "value": "={{ $json.inputData }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "dispatch-parallel",
+      "name": "Dispatch to Agent (Parallel)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 520]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO audit_logs (\n  submission_id,\n  action,\n  actor_type,\n  metadata\n) VALUES (\n  '{{ $json.submissionId }}'::uuid,\n  'workflow_started',\n  'system',\n  '{{ $json | toJsonString }}'::jsonb\n);",
+        "options": {}
+      },
+      "id": "log-start",
+      "name": "Log Workflow Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1120, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Receiver": {
+      "main": [
+        [
+          {
+            "node": "Validate & Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Extract": {
+      "main": [
+        [
+          {
+            "node": "Update Status to Running",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status to Running": {
+      "main": [
+        [
+          {
+            "node": "Create Workflow Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Workflow Run": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator Agent": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check if Parallel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Workflow Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Parallel": {
+      "main": [
+        [
+          {
+            "node": "Route to Formulation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route to Market Research",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route to Copywriting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Formulation": {
+      "main": [
+        [
+          {
+            "node": "Dispatch to Agent (Parallel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Market Research": {
+      "main": [
+        [
+          {
+            "node": "Dispatch to Agent (Parallel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Copywriting": {
+      "main": [
+        [
+          {
+            "node": "Dispatch to Agent (Parallel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "error-handler"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "LBF Technoglow",
+      "id": "lbf-main"
+    },
+    {
+      "name": "Production",
+      "id": "production"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

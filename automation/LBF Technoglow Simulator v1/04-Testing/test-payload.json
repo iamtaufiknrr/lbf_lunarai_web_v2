@@ -1,0 +1,186 @@
+{
+  "submissionId": "550e8400-e29b-41d4-a716-446655440000",
+  "submittedAt": "2025-10-20T10:30:00.000Z",
+  "targetEnvironment": "test",
+  "brand": {
+    "name": "LunaGlow Beauty",
+    "voice": "Empowering, scientific, and approachable. We speak to modern Indonesian women who value both efficacy and natural ingredients.",
+    "values": "Sustainability, transparency, Indonesian heritage, scientific innovation, cruelty-free"
+  },
+  "productBlueprint": {
+    "functions": [
+      "Brightening",
+      "Anti-Aging",
+      "Moisturizing"
+    ],
+    "formType": "Serum",
+    "packagingPrimer": {
+      "type": "Glass Dropper Bottle",
+      "finish": "Frosted",
+      "materialNotes": "Recyclable glass with bamboo cap"
+    },
+    "netto": {
+      "value": 30,
+      "unit": "ml"
+    },
+    "colorProfile": {
+      "description": "Light golden amber with subtle shimmer",
+      "hex": "#FFD700"
+    },
+    "gender": "Female",
+    "ageRanges": [
+      "25-34",
+      "35-44"
+    ],
+    "location": {
+      "country": "Indonesia",
+      "region": "Java",
+      "city": "Jakarta"
+    },
+    "launchTimeline": "Q2 2026",
+    "targetRetailPrice": 450000,
+    "pilotBatchSize": 500,
+    "moqExpectation": 1000,
+    "distributionFocus": "D2C Online",
+    "sustainabilityPriority": 85,
+    "regulatoryPriority": [
+      "BPOM Registration",
+      "Halal Certification"
+    ],
+    "texturePreference": "Lightweight, fast-absorbing, non-greasy",
+    "fragranceProfile": "Light floral with hints of jasmine and rose",
+    "claimEmphasis": [
+      "Visible brightening in 14 days",
+      "Reduces fine lines",
+      "100% natural active ingredients"
+    ],
+    "aiImageStyle": "Minimalist luxury with natural elements",
+    "requiresClinicalStudy": true,
+    "needsHalalCertification": true,
+    "referenceUpload": [
+      {
+        "filename": "reference-product-1.jpg",
+        "url": "https://example.com/uploads/ref1.jpg",
+        "mediaType": "image/jpeg"
+      }
+    ]
+  },
+  "collaboration": {
+    "preferredChannels": [
+      "Email",
+      "WhatsApp",
+      "Video Call"
+    ],
+    "requestedDeliverables": [
+      "Complete Product Brief",
+      "Formulation Specification",
+      "Market Analysis Report",
+      "Packaging Design Mockup",
+      "Regulatory Compliance Checklist"
+    ],
+    "notesForDesignTeam": "Please emphasize the natural and sustainable aspects in all visual materials. Target audience is eco-conscious millennials."
+  },
+  "concept": {
+    "formulaNarrative": "A luxurious brightening serum that combines traditional Indonesian botanical extracts (Bengkoang, Temulawak) with cutting-edge peptide technology. The formula is designed to address hyperpigmentation while providing anti-aging benefits through a synergistic blend of natural actives and scientifically-proven ingredients.",
+    "benchmark": "Similar to The Ordinary Niacinamide + Zinc, but with added Indonesian botanicals and more luxurious texture",
+    "additionalNotes": "Focus on sustainable sourcing of all botanical ingredients. Partner with local Indonesian farmers for Bengkoang and Temulawak extracts."
+  },
+  "ingredients": [
+    {
+      "name": "Niacinamide",
+      "inciName": "Niacinamide",
+      "percentage": 10,
+      "purpose": "Brightening, pore refining, anti-inflammatory",
+      "notes": "Pharmaceutical grade, stable at pH 5.5-6.5"
+    },
+    {
+      "name": "Bengkoang Extract",
+      "inciName": "Pachyrhizus Erosus Root Extract",
+      "percentage": 5,
+      "purpose": "Natural brightening, vitamin C source",
+      "notes": "Locally sourced from Java, organic certified"
+    },
+    {
+      "name": "Temulawak Extract",
+      "inciName": "Curcuma Xanthorrhiza Root Extract",
+      "percentage": 3,
+      "purpose": "Anti-inflammatory, antioxidant",
+      "notes": "Traditional Indonesian ingredient, sustainably harvested"
+    },
+    {
+      "name": "Hyaluronic Acid",
+      "inciName": "Sodium Hyaluronate",
+      "percentage": 2,
+      "purpose": "Deep hydration, plumping",
+      "notes": "Multi-molecular weight blend (high, medium, low)"
+    },
+    {
+      "name": "Peptide Complex",
+      "inciName": "Palmitoyl Tripeptide-1, Palmitoyl Tetrapeptide-7",
+      "percentage": 2,
+      "purpose": "Anti-aging, collagen synthesis",
+      "notes": "Matrixyl 3000 equivalent"
+    },
+    {
+      "name": "Alpha Arbutin",
+      "inciName": "Alpha-Arbutin",
+      "percentage": 2,
+      "purpose": "Tyrosinase inhibitor, brightening",
+      "notes": "Stable form, synergistic with niacinamide"
+    },
+    {
+      "name": "Vitamin E",
+      "inciName": "Tocopherol",
+      "percentage": 0.5,
+      "purpose": "Antioxidant, preservative booster",
+      "notes": "Natural source, non-GMO"
+    },
+    {
+      "name": "Glycerin",
+      "inciName": "Glycerin",
+      "percentage": 5,
+      "purpose": "Humectant, skin conditioning",
+      "notes": "Plant-derived, USP grade"
+    },
+    {
+      "name": "Propanediol",
+      "inciName": "Propanediol",
+      "percentage": 3,
+      "purpose": "Solvent, penetration enhancer",
+      "notes": "Corn-derived, sustainable alternative to propylene glycol"
+    },
+    {
+      "name": "Xanthan Gum",
+      "inciName": "Xanthan Gum",
+      "percentage": 0.3,
+      "purpose": "Thickener, stabilizer",
+      "notes": "Natural polysaccharide"
+    },
+    {
+      "name": "Phenoxyethanol + Ethylhexylglycerin",
+      "inciName": "Phenoxyethanol, Ethylhexylglycerin",
+      "percentage": 1,
+      "purpose": "Preservative system",
+      "notes": "Broad spectrum, paraben-free"
+    },
+    {
+      "name": "Fragrance",
+      "inciName": "Parfum",
+      "percentage": 0.2,
+      "purpose": "Sensory experience",
+      "notes": "Hypoallergenic, phthalate-free, jasmine & rose notes"
+    },
+    {
+      "name": "Aqua",
+      "inciName": "Aqua",
+      "percentage": 66,
+      "purpose": "Solvent, base",
+      "notes": "Purified, deionized water"
+    }
+  ],
+  "systemMetadata": {
+    "formVersion": "1.0.0",
+    "appVersion": "1.0.0",
+    "language": "id"
+  }
+}
